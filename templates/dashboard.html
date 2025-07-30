@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - AI Content Optimizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <h1 class="text-xl font-bold text-blue-600">AI Content Optimizer</h1>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-700">{{ email }}</span>
+                    <span class="px-2 py-1 text-xs font-semibold rounded-full {% if plan == 'basic' %}bg-blue-100 text-blue-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ plan.title() }} Plan
+                    </span>
+                    <a href="/pricing" class="text-blue-600 hover:text-blue-800">Upgrade</a>
+                    <button onclick="logout()" class="text-red-600 hover:text-red-800">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Status Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-user text-blue-500 text-2xl"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Current Plan</dt>
+                                <dd class="text-lg font-medium text-gray-900">{{ plan.title() }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-chart-line text-green-500 text-2xl"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Status</dt>
+                                <dd class="text-lg font-medium text-green-600">Active</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-magic text-purple-500 text-2xl"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Usage</dt>
+                                <dd class="text-lg font-medium text-gray-900" id="usage-display">{{ usage_count }}/{% if plan == 'basic' %}100{% else %}5{% endif %}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Content Optimization Interface -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                    <i class="fas fa-robot text-blue-500 mr-2"></i>
+                    AI Content Optimization
+                </h3>
+                
+                <!-- Content Input -->
+                <div class="mb-6">
+                    <label for="content-input" class="block text-sm font-medium text-gray-700 mb-2">
+                        Your Content
+                    </label>
+                    <textarea 
+                        id="content-input" 
+                        rows="8" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Paste your content here to optimize it with AI... (max 5000 characters)"
+                        maxlength="5000"
+                    ></textarea>
+                    <div class="mt-1 text-sm text-gray-500">
+                        <span id="char-count">0</span>/5000 characters
+                    </div>
+                </div>
+
+                <!-- Target Audience Selection -->
+                <div class="mb-6">
+                    <label for="target-audience" class="block text-sm font-medium text-gray-700 mb-2">
+                        Target Audience
+                    </label>
+                    <select id="target-audience" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <option value="General">General Audience</option>
+                        <option value="Business">Business Professionals</option>
+                        <option value="Marketing">Marketing Teams</option>
+                        <option value="Social Media">Social Media</option>
+                        <option value="Technical">Technical Audience</option>
+                    </select>
+                </div>
+
+                <!-- Optimize Button -->
+                <div class="mb-6">
+                    <button 
+                        id="optimize-btn" 
+                        onclick="optimizeContent()" 
+                        class="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 font-medium"
+                    >
+                        <i class="fas fa-magic mr-2"></i>
+                        Optimize Content with AI
+                    </button>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loading-state" class="hidden text-center py-8">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <p class="mt-2 text-gray-600">AI is optimizing your content...</p>
+                </div>
+
+                <!-- Results Section -->
+                <div id="results-section" class="hidden">
+                    <div class="border-t pt-6">
+                        <h4 class="text-lg font-medium text-gray-900 mb-4">
+                            <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                            Optimization Results
+                        </h4>
+
+                        <!-- Engagement Score -->
+                        <div class="mb-6">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm font-medium text-gray-700">Engagement Score</span>
+                                <span id="engagement-score" class="text-sm font-bold text-blue-600">0/100</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="engagement-bar" class="bg-blue-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Optimized Content -->
+                        <div class="mb-6">
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="block text-sm font-medium text-gray-700">Optimized Content</label>
+                                <button onclick="copyOptimizedContent()" class="text-blue-600 hover:text-blue-800 text-sm">
+                                    <i class="fas fa-copy mr-1"></i>Copy
+                                </button>
+                            </div>
+                            <div id="optimized-content" class="w-full p-4 border border-gray-300 rounded-md bg-gray-50 min-h-32 whitespace-pre-wrap"></div>
+                        </div>
+
+                        <!-- Key Improvements -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Key Improvements</label>
+                            <ul id="improvements-list" class="space-y-2"></ul>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex space-x-4">
+                            <button onclick="clearContent()" class="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
+                                <i class="fas fa-trash mr-2"></i>Clear
+                            </button>
+                            <button onclick="optimizeAgain()" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                <i class="fas fa-redo mr-2"></i>Optimize Again
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error Message -->
+                <div id="error-message" class="hidden mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                    <div class="flex">
+                        <i class="fas fa-exclamation-circle text-red-400 mr-2 mt-0.5"></i>
+                        <div class="text-sm text-red-700" id="error-text"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Character counter
+        document.getElementById('content-input').addEventListener('input', function() {
+            const charCount = this.value.length;
+            document.getElementById('char-count').textContent = charCount;
+            
+            if (charCount > 4500) {
+                document.getElementById('char-count').className = 'text-red-500 font-medium';
+            } else {
+                document.getElementById('char-count').className = '';
+            }
+        });
+
+        // Optimize content function
+        async function optimizeContent() {
+            const content = document.getElementById('content-input').value.trim();
+            const targetAudience = document.getElementById('target-audience').value;
+            
+            if (!content) {
+                showError('Please enter some content to optimize.');
+                return;
+            }
+
+            // Show loading state
+            document.getElementById('optimize-btn').disabled = true;
+            document.getElementById('loading-state').classList.remove('hidden');
+            document.getElementById('results-section').classList.add('hidden');
+            document.getElementById('error-message').classList.add('hidden');
+
+            try {
+                // Use absolute URL to avoid credential conflicts with tunnel URLs
+                const baseUrl = window.location.protocol + '//' + window.location.host;
+                const response = await fetch(baseUrl + '/api/optimize', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'include',
+                    body: JSON.stringify({content, target_audience: targetAudience})
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    displayResults(result);
+                    updateUsageCount(result.usage_count);
+                } else {
+                    showError(result.error || 'Optimization failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('Optimization error:', error);
+                showError('Network error. Please check your connection and try again.');
+            } finally {
+                document.getElementById('optimize-btn').disabled = false;
+                document.getElementById('loading-state').classList.add('hidden');
+            }
+        }
+
+        // Display optimization results
+        function displayResults(result) {
+            // Show results section
+            document.getElementById('results-section').classList.remove('hidden');
+            
+            // Update engagement score
+            const score = result.engagement_score;
+            document.getElementById('engagement-score').textContent = score + '/100';
+            document.getElementById('engagement-bar').style.width = score + '%';
+            
+            // Update optimized content
+            document.getElementById('optimized-content').textContent = result.optimized_content;
+            
+            // Update improvements list
+            const improvementsList = document.getElementById('improvements-list');
+            improvementsList.innerHTML = '';
+            result.improvements.forEach(improvement => {
+                const li = document.createElement('li');
+                li.className = 'flex items-center text-sm text-gray-700';
+                li.innerHTML = `<i class="fas fa-check text-green-500 mr-2"></i>${improvement}`;
+                improvementsList.appendChild(li);
+            });
+        }
+
+        // Show error message
+        function showError(message) {
+            document.getElementById('error-text').textContent = message;
+            document.getElementById('error-message').classList.remove('hidden');
+        }
+
+        // Update usage count
+        function updateUsageCount(newCount) {
+            const plan = '{{ plan }}';
+            const limit = plan === 'basic' ? 100 : 5;
+            document.getElementById('usage-display').textContent = newCount + '/' + limit;
+        }
+
+        // Copy optimized content
+        function copyOptimizedContent() {
+            const content = document.getElementById('optimized-content').textContent;
+            navigator.clipboard.writeText(content).then(() => {
+                // Show temporary success message
+                const button = event.target.closest('button');
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check mr-1"></i>Copied!';
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                }, 2000);
+            });
+        }
+
+        // Clear content
+        function clearContent() {
+            document.getElementById('content-input').value = '';
+            document.getElementById('char-count').textContent = '0';
+            document.getElementById('results-section').classList.add('hidden');
+            document.getElementById('error-message').classList.add('hidden');
+        }
+
+        // Optimize again
+        function optimizeAgain() {
+            optimizeContent();
+        }
+
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '/login';
+            }
+        }
+
+        // Enter key to optimize
+        document.getElementById('content-input').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                optimizeContent();
+            }
+        });
+    </script>
+</body>
+</html>
